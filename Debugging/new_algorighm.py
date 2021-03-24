@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 
 
-h = 30
-path = '29.jpg'
+# h = 14
+path = '23.jpg'
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 fontScale = 0.5
@@ -26,19 +26,20 @@ result = dict(zip(unique, counts))
 num_white_pixels = result[255]
 img_height, img_width, _ = img.shape
 max_pixel_count = img_width * img_height
-relational_pixel_count = num_white_pixels / max_pixel_count
+relational_pixel_count = (num_white_pixels / max_pixel_count)*100
 org = (10, img_height - 10)
 
-cv2.putText(img, path.split(".")[0] + ' ' + str(num_white_pixels), org, font,
-            fontScale, color, thickness, cv2.LINE_AA)
+# cv2.putText(img, path.split(".")[0] + ' ' + str(num_white_pixels), org, font,
+#             fontScale, color, thickness, cv2.LINE_AA)
 
-#0.00000467146609973919 * (h**2) - 0.000365097778525 * h + 0.007668397174133
-print("Debug: ", relational_pixel_count)
-real_cm2 = round((relational_pixel_count / (0.00000467146609973919 *
-                                            (h**2) - 0.000365097778525 * h + 0.007668397174133)), 2)
+# #0.00000467146609973919 * (h**2) - 0.000365097778525 * h + 0.007668397174133
+# print("Debug: ", relational_pixel_count)
+# real_cm2 = round((relational_pixel_count / (0.00000467146609973919 *
+#                                             (h**2) - 0.000365097778525 * h + 0.007668397174133)), 2)
 #corrected_real_cm2 = real_cm2 - real_cm2 * 0.10
 
 print("Done!")
-cv2.imwrite("result.jpg", img)
+# cv2.imwrite("result.jpg", img)
 cv2.imwrite("result_thres.jpg", th)
-print(real_cm2)
+print("Number of white pixels: " ,num_white_pixels)
+print("Percent relation: ", relational_pixel_count)

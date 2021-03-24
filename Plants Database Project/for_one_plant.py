@@ -4,8 +4,6 @@ import numpy as np
 import cv2
 
 # FUNCTION FOR CORRECTION BY PIXELS
-
-
 def correction_basedOnPixels(num_white_pixels, max_pixel_count):
     corr_percent = round((num_white_pixels / max_pixel_count) * 100)
     correction_coeff = corr_percent / 57.14
@@ -22,7 +20,7 @@ biggest_area = {
 
 
 # HEIGHT AND FILE NAME
-h = 23
+# h = 23
 path = '101w.jpg'
 
 # FONT PROPERTIES
@@ -102,26 +100,33 @@ num_white_pixels = result_dict[255]
 
 
 # APPLYING SOME CORRECTION
-num_white_pixels = correction_basedOnPixels(num_white_pixels, max_pixel_count)
+# num_white_pixels = correction_basedOnPixels(num_white_pixels, max_pixel_count)
 
 
 # GETTING RELATION BETWEEN ALL PIXELS AND WHITE PIXELS
-relational_pixel_count = num_white_pixels / max_pixel_count
+relational_pixel_count = (num_white_pixels / max_pixel_count) * 100
 org = (10, img_height - 10)
 
 
 # POLYNOMIAL FORMULA TO CALCULATE REAL AREA BASED ON NUMBER OF WHITE PIXELS !!!!
-real_cm2 = round((relational_pixel_count / (0.00000467146609973919 *
-                                            (h**2) - 0.000365097778525 * h + 0.007668397174133)), 2)
+# real_cm2 = round((relational_pixel_count / (0.00000467146609973919 *
+#                                             (h**2) - 0.000365097778525 * h + 0.007668397174133)), 2)
 
 
 # PRINTING AND SHOWING RESULTS
-cv2.imwrite("result.jpg", result)           # <--- HULL EXTRACTED
-cv2.imwrite("thres.jpg", inverted_thresh)   # <--- INVERTED THRESHOLD
-cv2.imwrite('test.jpg', original_img)       # <--- ORIGINAL IMAGE
+cv2.imwrite("result_thresholds/" + "threshold_" + path, result)           # <--- HULL EXTRACTED
+# cv2.imwrite("thres.jpg", inverted_thresh)   # <--- INVERTED THRESHOLD
+# cv2.imwrite('test.jpg', original_img)       # <--- ORIGINAL IMAGE
 
-print("Real area(calculated):", real_cm2)
-print("Number of white pixels: ", num_white_pixels)
+# print("Real area(calculated):", real_cm2)
+# print("Number of white pixels: ", num_white_pixels)
 
 
-print("Done!")
+# print("Done!")
+# LOGGING RESULTS INTO LOG FILE
+with open('log.txt', 'a') as file:
+        plant_number = path.split("w")[0]
+        file.write(plant_number + " " + str(relational_pixel_count) + "\n")
+        print("Done with " + path + "!")
+
+print("Process is complete!")
