@@ -1,0 +1,8 @@
+nursery2.jpg
+
+Hue Min: 20
+Hue Max: 179
+Sat Min: 0
+Sat Max: 255
+Val Min: 131
+Val Max: 255
