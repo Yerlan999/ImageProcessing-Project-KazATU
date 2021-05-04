@@ -37,3 +37,4 @@ cv2.putText(img, str(corrected_real_cm2) + ' cm2. ' + str(current_datetime), org
 
 cv2.imwrite('test0001.jpg', img)
 cv2.imwrite('test001.jpg', th)
+print("Finished!")
