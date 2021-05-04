@@ -98,10 +98,11 @@ class MainWindow():
             self.capture_button["state"] = "disabled"
             progress_bar.start()
 
-            img = cv2.imread("SampleImages/nursery.jpg")
+            # img = cv2.imread("SampleImages/nursery.jpg")
+
             # REAL IMAGE
-            # open_cv_image = np.array(self.image_pil)
-            # img = open_cv_image[:, :, ::-1].copy()
+            open_cv_image = np.array(self.image_pil)
+            img = open_cv_image[:, :, ::-1].copy()
 
             img_height, img_width, _ = img.shape
             max_pixel_count = img_width * img_height
@@ -134,8 +135,8 @@ class MainWindow():
 
             name_of_file = str(current_datetime).replace("/", "-").replace(":", "-").replace(" ", "_")
 
-            # cv2.imwrite(name_of_file + '_white_black.jpg', th)
-            # cv2.imwrite(name_of_file + '_original.jpg', img)
+            cv2.imwrite(name_of_file + '_white_black.jpg', th)
+            cv2.imwrite(name_of_file + '_original.jpg', img)
             # cv2.imshow(name_of_file + '_white_black.jpg', th)
             # cv2.imshow(name_of_file + '_original.jpg', img)
             progress_bar.stop()
@@ -195,8 +196,11 @@ if __name__ == "__main__":
 
 
 
-
-    win = MainWindow(root, cv2.VideoCapture(cam_type.get(), cv2.CAP_DSHOW), list_of_hsv_vals)
+    try:
+        win = MainWindow(root, cv2.VideoCapture(cam_type.get(), cv2.CAP_DSHOW), list_of_hsv_vals)
+    except:
+        messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
+        root.destroy()
 
     rad_button_pivot = (30, 10)
     tk.Label(root, text="Выбор камеры:", font=("bold", 12)).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
