@@ -1,16 +1,16 @@
-import os, re, threading, cv2
-import tkinter as tk
-import tkinter.font as tkFont
+from tkinter import messagebox, HORIZONTAL, END, DISABLED
 from tkinter.ttk import Progressbar
-from tkinter import messagebox, HORIZONTAL, END
-import numpy as np
 from PIL import Image, ImageTk
+import tkinter.font as tkFont
+import os, re, threading, cv2
 from datetime import datetime
+import tkinter as tk
+import numpy as np
 
 
-calc_button_color_1 = "#383d3b"
-calc_button_color_2 = "#909580"
-window_color = entry_color = "#007200"
+calc_button_color_1 = "#6a040f"
+calc_button_color_2 = "#370617"
+window_color = entry_color = "#003566"
 text_color = "#ffffff"
 s_entry_color = "#dad7cd"
 s_text_color = "#000000"
@@ -97,8 +97,8 @@ class MainWindow():
 
         def capture_image():
 
-            progress_pivot = (1100,570)
-            progress_bar = Progressbar(root, orient=HORIZONTAL,length=218,  mode='indeterminate')
+            progress_pivot = (1000,570)
+            progress_bar = Progressbar(root, orient=HORIZONTAL,length=232,  mode='indeterminate')
             progress_bar.place(x=progress_pivot[0], y=progress_pivot[1])
             progress_bar_label = tk.Label(root, text="Обработка данных...", font=helv10, bg=entry_color, fg=text_color)
             progress_bar_label.place(x=progress_pivot[0], y=progress_pivot[1]-30)
@@ -113,20 +113,20 @@ class MainWindow():
             img_height, img_width, _ = img.shape
             max_pixel_count = img_width * img_height
 
-            imgDenoisedColored = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21)
+            imgDenoisedColored = cv2.fastNlMeansDenoisingColored(img, None, 15, 15, 7, 21)
             imgGreenChannel = imgDenoisedColored[:,:,1]
-            imgDenoisedFinal = cv2.fastNlMeansDenoising(imgGreenChannel, 10, 10, 7, 21)
+            imgDenoisedFinal = cv2.fastNlMeansDenoising(imgGreenChannel, 15, 15, 7, 21)
 
-            blur = cv2.bilateralFilter(imgDenoisedFinal,7,11,11)
+            blur = cv2.bilateralFilter(imgDenoisedFinal,7,15,15)
             ret,th = cv2.threshold(blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-            kernel = np.ones((5,5),np.uint8)
+            kernel = np.ones((10,10),np.uint8)
             opening = cv2.morphologyEx(th, cv2.MORPH_OPEN, kernel)
             closing = cv2.morphologyEx(opening, cv2.MORPH_CLOSE, kernel)
 
             unique, counts = np.unique(closing, return_counts=True)
             result = dict(zip(unique, counts))
-            num_white_pixels = result[255]*1.3
+            num_white_pixels = result[255]*1.4
 
 
             relational_pixel_count = (num_white_pixels / max_pixel_count) * 100
@@ -159,17 +159,17 @@ class MainWindow():
         if cam_type == 0:
             try:
                 self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
-                self.set_caps(1200, 800)
+                self.set_caps(900, 600)
             except:
                 messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
-
+                return
         if cam_type == 1:
             try:
                 self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
                 self.set_caps(900, 600)
             except:
                 messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
-
+                return
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -201,7 +201,12 @@ if __name__ == "__main__":
         else:
             exec("widget = tk.Scale(root, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
         widget.place(x=hsv_pivot[0], y=hsv_pivot[1]+(i*40))
-        widget.set(100)
+
+
+    hue_min.set(0); hue_max.set(179);
+    sat_min.set(0); sat_max.set(255);
+    val_min.set(0); val_max.set(255);
+
 
     list_of_hsv_vals = [hue_min, sat_min, val_min, hue_max, sat_max, val_max]
 
@@ -212,23 +217,38 @@ if __name__ == "__main__":
         tk.Label(root, text=label, font=helv11, bg=entry_color, fg=text_color).place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+20+(i*40))
 
 
+    webcam_broken= None
+    addcamera_broken = None
 
     try:
-        win = MainWindow(root, cv2.VideoCapture(cam_type.get(), cv2.CAP_DSHOW), list_of_hsv_vals)
+        test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        image_test = cv2.cvtColor(test.read()[1], cv2.COLOR_BGR2RGB)
     except:
-        messagebox.showerror(title="Ошибка!", message="Ваша веб-камера работает неисправно")
-        answer = messagebox.askyesno(title="Выбор альтернативной камеры", message="Вы хотите попробывать подключиться к другой камере?")
-        if answer == False:
-            root.destroy()
-        else:
-            try:
-                win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
-                cam_type.set(1)
-            except:
-                messagebox.showerror(title="Ошибка!", message="Камера не найдена. Попробуйте еще раз")
-                root.destroy()
+        webcam_broken = True
+    try:
+        test = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+        image_test = cv2.cvtColor(test.read()[1], cv2.COLOR_BGR2RGB)
+    except:
+        addcamera_broken = True
+
+    print(webcam_broken, addcamera_broken)
+
+    if webcam_broken and addcamera_broken:
+        messagebox.showerror(title="Ошибка!", message="Не удалось найти доступное устройство")
+        root.destroy()
+    elif not webcam_broken and addcamera_broken:
+        win = MainWindow(root, cv2.VideoCapture(0, cv2.CAP_DSHOW), list_of_hsv_vals)
+        cam_type.set(0)
+    elif not addcamera_broken and webcam_broken:
+        win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
+        cam_type.set(1)
+    elif not addcamera_broken and not webcam_broken:
+        win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
+        cam_type.set(1)
+
 
     rad_button_pivot = (30, 10)
+
     tk.Label(root, text="Выбор камеры:", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
     tk.Label(root, text="Основная веб-камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+190, y=rad_button_pivot[1])
     tk.Label(root, text="Подключенная камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+430, y=rad_button_pivot[1])
@@ -238,6 +258,13 @@ if __name__ == "__main__":
         value=1, command=lambda:win.change_camera(1), bg=entry_color, fg="#000000")
     rad_but_1.place(x=rad_button_pivot[0]+150, y=rad_button_pivot[1])
     rad_but_2.place(x=rad_button_pivot[0]+390, y=rad_button_pivot[1])
+
+    if webcam_broken:
+        rad_but_1.configure(state = DISABLED)
+    if addcamera_broken:
+        rad_but_2.configure(state = DISABLED)
+
+
 
     pattern = re.compile(r'^([\.\d]*)$')
     vcmd = (root.register(validate_numbers), "%i", "%P")
