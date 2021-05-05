@@ -1,5 +1,6 @@
 import os, re, threading, cv2
 import tkinter as tk
+import tkinter.font as tkFont
 from tkinter.ttk import Progressbar
 from tkinter import messagebox, HORIZONTAL, END
 import numpy as np
@@ -7,8 +8,15 @@ from PIL import Image, ImageTk
 from datetime import datetime
 
 
-calc_button_color_1 = "#006400"
-calc_button_color_2 = "#004b23"
+calc_button_color_1 = "#383d3b"
+calc_button_color_2 = "#909580"
+window_color = entry_color = "#007200"
+text_color = "#ffffff"
+s_entry_color = "#dad7cd"
+s_text_color = "#000000"
+e_entry_color = "#ebf2fa"
+troughcolor = "#ebf2fa"
+
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 fontScale = 1
@@ -32,21 +40,21 @@ class MainWindow():
         self.set_caps(900, 600)
         # Update image on canvas
         self.update_image()
-        self.capture_button = tk.Button(root, text ="Рассчитать", width=30, bg=calc_button_color_1,
+        self.capture_button = tk.Button(root, text ="Рассчитать", font=helv10, width=25, bg=calc_button_color_1,
         fg='white', height=2, activebackground=calc_button_color_2, command=lambda:win.capture_image_wrapper(height_from_plant))
-        self.capture_button.place(x=1100, y=600)
+        self.capture_button.place(x=1000, y=600)
 
 
     def set_caps(self, width, height):
 
-        self.cap.set(3, width);
-        self.cap.set(4, height);
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         self.interval = 20 # Interval in ms to get the latest frame
 
         # Create canvas for image
-        self.canvas = tk.Canvas(self.window, width=self.width, height=self.height)
+        self.canvas = tk.Canvas(self.window, width=self.width, height=self.height ,bg=window_color, highlightbackground=window_color)
         self.canvas.place(x=30, y=40)
 
     def update_image(self):
@@ -92,13 +100,11 @@ class MainWindow():
             progress_pivot = (1100,570)
             progress_bar = Progressbar(root, orient=HORIZONTAL,length=218,  mode='indeterminate')
             progress_bar.place(x=progress_pivot[0], y=progress_pivot[1])
-            progress_bar_label = tk.Label(root, text="Обработка данных...", font=("bold", 10))
+            progress_bar_label = tk.Label(root, text="Обработка данных...", font=helv10, bg=entry_color, fg=text_color)
             progress_bar_label.place(x=progress_pivot[0], y=progress_pivot[1]-30)
 
             self.capture_button["state"] = "disabled"
             progress_bar.start()
-
-            # img = cv2.imread("SampleImages/nursery.jpg")
 
             # REAL IMAGE
             open_cv_image = np.array(self.image_pil)
@@ -137,8 +143,7 @@ class MainWindow():
 
             cv2.imwrite(name_of_file + '_white_black.jpg', th)
             cv2.imwrite(name_of_file + '_original.jpg', img)
-            # cv2.imshow(name_of_file + '_white_black.jpg', th)
-            # cv2.imshow(name_of_file + '_original.jpg', img)
+
             progress_bar.stop()
             self.capture_button["state"] = "normal"
             progress_bar_label.destroy()
@@ -152,16 +157,28 @@ class MainWindow():
         self.canvas.delete("all")
 
         if cam_type == 0:
-            self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
-            self.set_caps(600, 600)
+            try:
+                self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
+                self.set_caps(1200, 800)
+            except:
+                messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
 
         if cam_type == 1:
-            self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
-            self.set_caps(900, 600)
+            try:
+                self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
+                self.set_caps(900, 600)
+            except:
+                messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.geometry('1366x768')
+    root.configure(bg=window_color)
+    helv21 = tkFont.Font(family="Georgia",size=21,weight="bold")
+    helv10 = tkFont.Font(family="Georgia",size=10,weight="bold")
+    helv11 = tkFont.Font(family="Georgia",size=11,weight="bold")
+    helv12 = tkFont.Font(family="Georgia",size=12,weight="bold")
 
     list_hsv_minmax = [h + "_" + m for m in ["min", "max"] for h in ["hue", "sat", "val"]]
     for var in list_hsv_minmax:
@@ -173,16 +190,16 @@ if __name__ == "__main__":
     height_from_plant = tk.StringVar()
 
 
-    plant_height_label = tk.Label(root, text="Расчет площади растения", font=("bold", 20))
-    plant_height_label.place(x=950, y=50)
+    plant_height_label = tk.Label(root, text="Расчет площади растения", font=helv21, bg=s_entry_color, fg=s_text_color)
+    plant_height_label.place(x=900, y=50)
 
 
     hsv_pivot = (1100, 130)
     for i, widget in enumerate(list_hsv_minmax):
         if widget.startswith("hue"):
-            exec("widget = tk.Scale(root, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL)")
+            exec("widget = tk.Scale(root, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
         else:
-            exec("widget = tk.Scale(root, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL)")
+            exec("widget = tk.Scale(root, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
         widget.place(x=hsv_pivot[0], y=hsv_pivot[1]+(i*40))
         widget.set(100)
 
@@ -192,31 +209,42 @@ if __name__ == "__main__":
 
     list_hsv_minmax_label = [hsv + " " + mm for mm in ["мин", "макс"] for hsv in ["Тон", "Насыщенность", "Яркость"]]
     for i, label in enumerate(list_hsv_minmax_label):
-        tk.Label(root, text=label, font=("bold", 11)).place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+20+(i*40))
+        tk.Label(root, text=label, font=helv11, bg=entry_color, fg=text_color).place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+20+(i*40))
 
 
 
     try:
         win = MainWindow(root, cv2.VideoCapture(cam_type.get(), cv2.CAP_DSHOW), list_of_hsv_vals)
     except:
-        messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
-        root.destroy()
+        messagebox.showerror(title="Ошибка!", message="Ваша веб-камера работает неисправно")
+        answer = messagebox.askyesno(title="Выбор альтернативной камеры", message="Вы хотите попробывать подключиться к другой камере?")
+        if answer == False:
+            root.destroy()
+        else:
+            try:
+                win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
+                cam_type.set(1)
+            except:
+                messagebox.showerror(title="Ошибка!", message="Камера не найдена. Попробуйте еще раз")
+                root.destroy()
 
     rad_button_pivot = (30, 10)
-    tk.Label(root, text="Выбор камеры:", font=("bold", 12)).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
-    rad_but_1 = tk.Radiobutton(root, text="Основная веб-камера",padx = 5, font=("bold", 11), variable=cam_type,
-        value=0, command=lambda:win.change_camera(0))
-    rad_but_2 = tk.Radiobutton(root, text="Подключенная камера",padx = 5, font=("bold", 11), variable=cam_type,
-        value=1, command=lambda:win.change_camera(1))
-    rad_but_1.place(x=rad_button_pivot[0]+200, y=rad_button_pivot[1])
-    rad_but_2.place(x=rad_button_pivot[0]+400, y=rad_button_pivot[1])
+    tk.Label(root, text="Выбор камеры:", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
+    tk.Label(root, text="Основная веб-камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+190, y=rad_button_pivot[1])
+    tk.Label(root, text="Подключенная камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+430, y=rad_button_pivot[1])
+    rad_but_1 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
+        value=0, command=lambda:win.change_camera(0), bg=entry_color, fg="#000000")
+    rad_but_2 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
+        value=1, command=lambda:win.change_camera(1), bg=entry_color, fg="#000000")
+    rad_but_1.place(x=rad_button_pivot[0]+150, y=rad_button_pivot[1])
+    rad_but_2.place(x=rad_button_pivot[0]+390, y=rad_button_pivot[1])
 
     pattern = re.compile(r'^([\.\d]*)$')
     vcmd = (root.register(validate_numbers), "%i", "%P")
-    plant_height_label = tk.Label(root, text="Высота до растения в (см)", font=("bold", 11))
-    plant_height_label.place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+269)
+    plant_height_label = tk.Label(root, text="Высота до растения в (см)", font=helv11, bg=entry_color, fg=text_color)
+    plant_height_label.place(x=hsv_pivot[0]-220, y=hsv_pivot[1]+269)
 
-    plant_height_entry = tk.Entry(root, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd)
+    plant_height_entry = tk.Entry(root, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd, bg=e_entry_color)
     plant_height_entry.place(x=hsv_pivot[0]+3, y=hsv_pivot[1]+270)
 
 
