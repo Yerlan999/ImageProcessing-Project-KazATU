@@ -37,7 +37,7 @@ class MainWindow():
 
         self.window = window
         self.cap = cap
-        self.set_caps(900, 600)
+        self.set_caps(801, 601)
         # Update image on canvas
         self.update_image()
         self.capture_button = tk.Button(root, text ="Рассчитать", font=helv10, width=25, bg=calc_button_color_1,
@@ -54,6 +54,8 @@ class MainWindow():
         self.interval = 20 # Interval in ms to get the latest frame
 
         # Create canvas for image
+
+
         self.canvas = tk.Canvas(self.window, width=self.width, height=self.height ,bg=window_color, highlightbackground=window_color)
         self.canvas.place(x=30, y=40)
 
@@ -222,12 +224,20 @@ if __name__ == "__main__":
 
     try:
         test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        image_test = cv2.cvtColor(test.read()[1], cv2.COLOR_BGR2RGB)
+        test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
+        test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
+        if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
+            raise ValueError
+
     except:
         webcam_broken = True
     try:
         test = cv2.VideoCapture(1, cv2.CAP_DSHOW)
-        image_test = cv2.cvtColor(test.read()[1], cv2.COLOR_BGR2RGB)
+        test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
+        test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
+        if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
+            raise ValueError
+
     except:
         addcamera_broken = True
 
