@@ -1,4 +1,4 @@
-from tkinter import messagebox, HORIZONTAL, END, DISABLED
+from tkinter import messagebox, HORIZONTAL, END, DISABLED, filedialog
 from tkinter.ttk import Progressbar
 from PIL import Image, ImageTk
 import tkinter.font as tkFont
@@ -6,6 +6,7 @@ import os, re, threading, cv2
 from datetime import datetime
 import tkinter as tk
 import numpy as np
+from pathlib import Path
 
 
 calc_button_color_1 = "#6a040f"
@@ -37,34 +38,53 @@ class MainWindow():
 
         self.window = window
         self.cap = cap
-        self.set_caps(801, 601)
-        # Update image on canvas
-        self.update_image()
+        if self.cap != "Only Images":
+            self.set_caps("Video Streaming", 801, 601)
+            # Update image on canvas
+            self.update_image("Video Streaming")
+
         self.capture_button = tk.Button(root, text ="Рассчитать", font=helv10, width=25, bg=calc_button_color_1,
         fg='white', height=2, activebackground=calc_button_color_2, command=lambda:win.capture_image_wrapper(height_from_plant))
         self.capture_button.place(x=1000, y=600)
 
+        self.label_picture = tk.Label(root, text="Путь к фотоке:",width=20,font=("bold", 12))
+        self.label_picture.place(x=55,y=650)
 
-    def set_caps(self, width, height):
+        self.picture_path = tk.Entry(root, font=30)
+        self.picture_path.grid(row=2,column=6)
+        self.picture_path.place(x=245,y=650)
 
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-        self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.select_button_pic = tk.Button(root,text="Выбрать",font=40, command=self.choose_picture).place(x=430,y=645)
+
+
+    def set_caps(self, mode, width, height):
+
+        if mode == "Video Streaming":
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            self.width = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+            self.height = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            # Create canvas for image
+            self.canvas = tk.Canvas(self.window, width=self.width, height=self.height ,bg=window_color, highlightbackground=window_color)
+            self.canvas.place(x=30, y=40)
+        else:
+            image_height, image_width, _ = self.image_org.shape
+            self.canvas = tk.Canvas(self.window, width=image_width, height=image_height)
+            self.canvas.place(x=30, y=40)
         self.interval = 20 # Interval in ms to get the latest frame
 
-        # Create canvas for image
+
+    def update_image(self, mode):
+
+        if mode == "Video Streaming":
+            # Get the latest frame and convert image format
+            self.image_org = cv2.cvtColor(self.cap.read()[1], cv2.COLOR_BGR2RGB) # to RGB
+            self.image_hsv = cv2.cvtColor(self.image_org, cv2.COLOR_BGR2HSV) # to RGB
+        else:
+            self.image_org = self.cap
+            self.image_hsv = cv2.cvtColor(self.image_org, cv2.COLOR_BGR2HSV)
 
 
-        self.canvas = tk.Canvas(self.window, width=self.width, height=self.height ,bg=window_color, highlightbackground=window_color)
-        self.canvas.place(x=30, y=40)
-
-    def update_image(self):
-        # Get the latest frame and convert image format
-        self.image_org = cv2.cvtColor(self.cap.read()[1], cv2.COLOR_BGR2RGB) # to RGB
-        self.image_hsv = cv2.cvtColor(self.image_org, cv2.COLOR_BGR2HSV) # to RGB
-
-        # self.image_filtered = cv2.bilateralFilter(self.image_hsv, 9, 75, 75)
 
         h_min = self.hue_min.get()
         s_min = self.sat_min.get()
@@ -86,7 +106,8 @@ class MainWindow():
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.image_to_show)
 
         # Repeat every 'interval' ms
-        self.window.after(self.interval, self.update_image)
+        self.window.after(self.interval, lambda:self.update_image(mode))
+
 
     def capture_image_wrapper(self, height_from_plant):
         answer = messagebox.askyesno(title="Расчет", message="Вы уверены что хотите произвести раcчет по указанным данным?")
@@ -161,17 +182,33 @@ class MainWindow():
         if cam_type == 0:
             try:
                 self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
-                self.set_caps(900, 600)
+                self.set_caps("Video Streaming", 801, 601)
             except:
                 messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
                 return
         if cam_type == 1:
             try:
                 self.cap = cv2.VideoCapture(cam_type, cv2.CAP_DSHOW)
-                self.set_caps(900, 600)
+                self.set_caps("Video Streaming", 801, 601)
             except:
                 messagebox.showerror(title="Ошибка!", message="Камера подключена неправильно")
                 return
+
+    def choose_picture(self):
+
+        self.canvas.delete("all")
+        print("Oui!")
+        filename = filedialog.askopenfilename(filetypes=[("Pictures", ".jpeg .png  .jpg"), ("ALL","*.*")])
+        self.picture_path.insert(END, filename) # add this
+        picture = Path(self.picture_path.get())
+
+        self.image_org = cv2.imread(str(picture), cv2.COLOR_BGR2RGB)
+        self.image_org = cv2.resize(self.image_org, (800, 600), interpolation = cv2.INTER_AREA)
+
+        self.cap = self.image_org
+        self.set_caps("Images Only", 801, 601)
+        self.update_image("Images Only")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
@@ -223,6 +260,7 @@ if __name__ == "__main__":
     addcamera_broken = None
 
     try:
+        # raise ValueError
         test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
         test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
@@ -232,6 +270,7 @@ if __name__ == "__main__":
     except:
         webcam_broken = True
     try:
+        # raise ValueError
         test = cv2.VideoCapture(1, cv2.CAP_DSHOW)
         test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
         test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
@@ -241,11 +280,10 @@ if __name__ == "__main__":
     except:
         addcamera_broken = True
 
-    print(webcam_broken, addcamera_broken)
 
     if webcam_broken and addcamera_broken:
         messagebox.showerror(title="Ошибка!", message="Не удалось найти доступное устройство")
-        root.destroy()
+        win = MainWindow(root, "Only Images", list_of_hsv_vals)
     elif not webcam_broken and addcamera_broken:
         win = MainWindow(root, cv2.VideoCapture(0, cv2.CAP_DSHOW), list_of_hsv_vals)
         cam_type.set(0)
@@ -273,6 +311,24 @@ if __name__ == "__main__":
         rad_but_1.configure(state = DISABLED)
     if addcamera_broken:
         rad_but_2.configure(state = DISABLED)
+
+
+    # FILE INPUT FOR EXCEL FILE
+    # def fileinput():
+    #     filename = filedialog.askopenfilename(filetypes=[("Excel files", ".xlsx .xls"), ("ALL","*.*")])
+    #     excel_filepath.insert(END, filename) # add this
+
+
+    # label_excel = tk.Label(root, text="Путь к файлу:",width=20,font=("bold", 12))
+    # label_excel.place(x=55,y=650)
+
+    # excel_filepath = tk.Entry(root, font=30)
+    # excel_filepath.grid(row=2,column=6)
+    # excel_filepath.place(x=245,y=650)
+
+    # select_button_excel = tk.Button(root,text="Выбрать",font=40, command=fileinput).place(x=430,y=645)
+
+
 
 
 
