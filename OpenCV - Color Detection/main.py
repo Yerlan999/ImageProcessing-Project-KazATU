@@ -222,117 +222,120 @@ class MainWindow():
             self.no_camera = False
             self.update_image()
 
+
 if __name__ == "__main__":
-    root = tk.Tk()
-
-    width, height = root.winfo_screenwidth(), root.winfo_screenheight()
-    root.geometry('%dx%d+0+0' % (width,height))
-    root.configure(bg=window_color)
-    helv21 = tkFont.Font(family="Georgia",size=21,weight="bold")
-    helv10 = tkFont.Font(family="Georgia",size=10,weight="bold")
-    helv11 = tkFont.Font(family="Georgia",size=11,weight="bold")
-    helv12 = tkFont.Font(family="Georgia",size=12,weight="bold")
-
-    list_hsv_minmax = [h + "_" + m for m in ["min", "max"] for h in ["hue", "sat", "val"]]
-    for var in list_hsv_minmax:
-        exec(var + " = tk.IntVar()")
-
-    cam_type = tk.IntVar()
-    cam_type.set(0)
-
-    height_from_plant = tk.StringVar()
-
-
-    plant_height_label = tk.Label(root, text="Расчет площади растения", font=helv21, bg=s_entry_color, fg=s_text_color)
-    plant_height_label.place(x=900, y=50)
-
-
-    hsv_pivot = (1100, 130)
-    for i, widget in enumerate(list_hsv_minmax):
-        if widget.startswith("hue"):
-            exec("widget = tk.Scale(root, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
-        else:
-            exec("widget = tk.Scale(root, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
-        widget.place(x=hsv_pivot[0], y=hsv_pivot[1]+(i*40))
-
-
-    hue_min.set(0); hue_max.set(179);
-    sat_min.set(0); sat_max.set(255);
-    val_min.set(0); val_max.set(255);
-
-
-    list_of_hsv_vals = [hue_min, sat_min, val_min, hue_max, sat_max, val_max]
-
-
-
-    list_hsv_minmax_label = [hsv + " " + mm for mm in ["мин", "макс"] for hsv in ["Тон", "Насыщенность", "Яркость"]]
-    for i, label in enumerate(list_hsv_minmax_label):
-        tk.Label(root, text=label, font=helv11, bg=entry_color, fg=text_color).place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+20+(i*40))
-
-
-    webcam_broken= None
-    addcamera_broken = None
-
     try:
-        test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
-        test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
-        if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
-            raise ValueError
+        root = tk.Tk()
 
-    except:
-        webcam_broken = True
-    try:
-        test = cv2.VideoCapture(1, cv2.CAP_DSHOW)
-        test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
-        test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
-        if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
-            raise ValueError
+        width, height = root.winfo_screenwidth(), root.winfo_screenheight()
+        root.geometry('%dx%d+0+0' % (width,height))
+        root.configure(bg=window_color)
+        helv21 = tkFont.Font(family="Georgia",size=21,weight="bold")
+        helv10 = tkFont.Font(family="Georgia",size=10,weight="bold")
+        helv11 = tkFont.Font(family="Georgia",size=11,weight="bold")
+        helv12 = tkFont.Font(family="Georgia",size=12,weight="bold")
 
-    except:
-        addcamera_broken = True
+        list_hsv_minmax = [h + "_" + m for m in ["min", "max"] for h in ["hue", "sat", "val"]]
+        for var in list_hsv_minmax:
+            exec(var + " = tk.IntVar()")
 
-
-    if webcam_broken and addcamera_broken:
-        messagebox.showerror(title="Ошибка!", message="Не удалось найти доступное устройство")
-        win = MainWindow(root, "Only Images", list_of_hsv_vals)
-    elif not webcam_broken and addcamera_broken:
-        win = MainWindow(root, cv2.VideoCapture(0, cv2.CAP_DSHOW), list_of_hsv_vals)
+        cam_type = tk.IntVar()
         cam_type.set(0)
-    elif not addcamera_broken and webcam_broken:
-        win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
-        cam_type.set(1)
-    elif not addcamera_broken and not webcam_broken:
-        win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
-        cam_type.set(1)
+
+        height_from_plant = tk.StringVar()
 
 
-    rad_button_pivot = (30, 10)
-
-    tk.Label(root, text="Выбор камеры:", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
-    tk.Label(root, text="Основная веб-камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+190, y=rad_button_pivot[1])
-    tk.Label(root, text="Подключенная камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+430, y=rad_button_pivot[1])
-    rad_but_1 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
-        value=0, command=lambda:win.change_camera(0), bg=entry_color, fg="#000000")
-    rad_but_2 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
-        value=1, command=lambda:win.change_camera(1), bg=entry_color, fg="#000000")
-    rad_but_1.place(x=rad_button_pivot[0]+150, y=rad_button_pivot[1])
-    rad_but_2.place(x=rad_button_pivot[0]+390, y=rad_button_pivot[1])
-
-    if webcam_broken:
-        rad_but_1.configure(state = DISABLED)
-    if addcamera_broken:
-        rad_but_2.configure(state = DISABLED)
+        plant_height_label = tk.Label(root, text="Расчет площади растения", font=helv21, bg=s_entry_color, fg=s_text_color)
+        plant_height_label.place(x=900, y=50)
 
 
-    pattern = re.compile(r'^([\.\d]*)$')
-    vcmd = (root.register(validate_numbers), "%i", "%P")
-    plant_height_label = tk.Label(root, text="Высота до растения в (см)", font=helv11, bg=entry_color, fg=text_color)
-    plant_height_label.place(x=hsv_pivot[0]-220, y=hsv_pivot[1]+269)
+        hsv_pivot = (1100, 130)
+        for i, widget in enumerate(list_hsv_minmax):
+            if widget.startswith("hue"):
+                exec("widget = tk.Scale(root, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
+            else:
+                exec("widget = tk.Scale(root, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
+            widget.place(x=hsv_pivot[0], y=hsv_pivot[1]+(i*40))
 
-    plant_height_entry = tk.Entry(root, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd, bg=e_entry_color)
-    plant_height_entry.place(x=hsv_pivot[0]+3, y=hsv_pivot[1]+270)
+
+        hue_min.set(0); hue_max.set(179);
+        sat_min.set(0); sat_max.set(255);
+        val_min.set(0); val_max.set(255);
 
 
-    root.mainloop()
-    os.system("taskkill /F /IM python3.8.exe /T")
+        list_of_hsv_vals = [hue_min, sat_min, val_min, hue_max, sat_max, val_max]
+
+
+
+        list_hsv_minmax_label = [hsv + " " + mm for mm in ["мин", "макс"] for hsv in ["Тон", "Насыщенность", "Яркость"]]
+        for i, label in enumerate(list_hsv_minmax_label):
+            tk.Label(root, text=label, font=helv11, bg=entry_color, fg=text_color).place(x=hsv_pivot[0]-200, y=hsv_pivot[1]+20+(i*40))
+
+
+        webcam_broken= None
+        addcamera_broken = None
+
+        try:
+            test = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
+            test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
+            if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
+                raise ValueError
+
+        except:
+            webcam_broken = True
+        try:
+            test = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+            test.set(cv2.CAP_PROP_FRAME_WIDTH, 801)
+            test.set(cv2.CAP_PROP_FRAME_HEIGHT, 601)
+            if test.get(cv2.CAP_PROP_FRAME_WIDTH) == 801 and test.set(cv2.CAP_PROP_FRAME_HEIGHT) == 601:
+                raise ValueError
+
+        except:
+            addcamera_broken = True
+
+
+        if webcam_broken and addcamera_broken:
+            messagebox.showerror(title="Ошибка!", message="Не удалось найти доступное устройство")
+            win = MainWindow(root, "Only Images", list_of_hsv_vals)
+        elif not webcam_broken and addcamera_broken:
+            win = MainWindow(root, cv2.VideoCapture(0, cv2.CAP_DSHOW), list_of_hsv_vals)
+            cam_type.set(0)
+        elif not addcamera_broken and webcam_broken:
+            win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
+            cam_type.set(1)
+        elif not addcamera_broken and not webcam_broken:
+            win = MainWindow(root, cv2.VideoCapture(1, cv2.CAP_DSHOW), list_of_hsv_vals)
+            cam_type.set(1)
+
+
+        rad_button_pivot = (30, 10)
+
+        tk.Label(root, text="Выбор камеры:", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0], y=rad_button_pivot[1])
+        tk.Label(root, text="Основная веб-камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+190, y=rad_button_pivot[1])
+        tk.Label(root, text="Подключенная камера", font=helv12, bg=entry_color, fg=text_color).place(x=rad_button_pivot[0]+430, y=rad_button_pivot[1])
+        rad_but_1 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
+            value=0, command=lambda:win.change_camera(0), bg=entry_color, fg="#000000")
+        rad_but_2 = tk.Radiobutton(root, padx = 5, font=helv11, variable=cam_type,
+            value=1, command=lambda:win.change_camera(1), bg=entry_color, fg="#000000")
+        rad_but_1.place(x=rad_button_pivot[0]+150, y=rad_button_pivot[1])
+        rad_but_2.place(x=rad_button_pivot[0]+390, y=rad_button_pivot[1])
+
+        if webcam_broken:
+            rad_but_1.configure(state = DISABLED)
+        if addcamera_broken:
+            rad_but_2.configure(state = DISABLED)
+
+
+        pattern = re.compile(r'^([\.\d]*)$')
+        vcmd = (root.register(validate_numbers), "%i", "%P")
+        plant_height_label = tk.Label(root, text="Высота до растения в (см)", font=helv11, bg=entry_color, fg=text_color)
+        plant_height_label.place(x=hsv_pivot[0]-220, y=hsv_pivot[1]+269)
+
+        plant_height_entry = tk.Entry(root, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd, bg=e_entry_color)
+        plant_height_entry.place(x=hsv_pivot[0]+3, y=hsv_pivot[1]+270)
+
+
+        root.mainloop()
+    finally:
+        os.system("taskkill /F /IM python3.8.exe /T")
