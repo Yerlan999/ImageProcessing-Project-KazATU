@@ -62,14 +62,14 @@ class MainWindow():
         self.capture_button.place(x=1000, y=600)
 
         self.label_picture = tk.Label(root, text="Путь к фотоке:",width=20,font=("bold", 12))
-        self.label_picture.place(x=55,y=650)
+        self.label_picture.place(x=895,y=450)
 
         self.picture_path = tk.Entry(root, font=30)
         self.picture_path.grid(row=2,column=6)
         self.picture_path.place(x=2000,y=2000)
 
 
-        self.select_button_pic = tk.Button(root,text="Выбрать",font=40, command=self.choose_picture).place(x=430,y=645)
+        self.select_button_pic = tk.Button(root,text="Выбрать",font=40, command=self.choose_picture).place(x=1105,y=445)
 
 
     def set_caps(self, mode, width, height):
@@ -224,7 +224,9 @@ class MainWindow():
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.geometry('1366x768')
+
+    width, height = root.winfo_screenwidth(), root.winfo_screenheight()
+    root.geometry('%dx%d+0+0' % (width,height))
     root.configure(bg=window_color)
     helv21 = tkFont.Font(family="Georgia",size=21,weight="bold")
     helv10 = tkFont.Font(family="Georgia",size=10,weight="bold")
