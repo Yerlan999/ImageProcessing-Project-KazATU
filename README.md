@@ -4,4 +4,4 @@
 Roughly calculates leaf area based on precalculated polynomial formula.
 Takes pictures with both webcamera, connected USB camera or even jpeg images.<br/>
 Screenshot<br/>
-[screenshot](Screenshot_5.png)
+![screenshot](Screenshot_5.png)
