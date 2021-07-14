@@ -169,7 +169,7 @@ class MainWindow():
             real_cm2 = round((relational_pixel_count / (4.17277589255267 - 0.277111499290506*(height_from_plant**1) - 0.0153889344192674*(height_from_plant**2) + 0.00232991009995106*(height_from_plant**3) - 0.0000993963917490068*(height_from_plant**4) + 1.87433703715374E-06*(height_from_plant**5) - 1.34236754826271E-08*(height_from_plant**6))), 2)
             if real_cm2 < 0:
                 real_cm2 = "Отриц.число!"
-            current_datetime = datetime.now().strftime("%d/%m/%Y %H:%M")
+            current_datetime = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
             cv2.putText(img, str(real_cm2) + ' cm2. ' + str(current_datetime), org, font,
                                fontScale, color, thickness, cv2.LINE_AA)
