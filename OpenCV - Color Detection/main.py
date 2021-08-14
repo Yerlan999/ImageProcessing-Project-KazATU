@@ -1,6 +1,8 @@
 from tkinter import *
 from tkinter import messagebox, HORIZONTAL, END, DISABLED, filedialog
 from tkinter.ttk import Progressbar
+from tkinter import ttk
+from ttkthemes import ThemedTk
 import tkinter.font as tkFont
 import os, re, threading, cv2
 from datetime import datetime
@@ -12,7 +14,7 @@ from PIL import Image, ImageTk
 
 calc_button_color_1 = "#6a040f"
 calc_button_color_2 = "#370617"
-window_color = entry_color = "#003566"
+window_color = entry_color = "#ffffff"
 text_color = "#ffffff"
 s_entry_color = "#dad7cd"
 s_text_color = "#000000"
@@ -58,19 +60,18 @@ class MainWindow():
             self.no_camera = True
 
 
-        self.capture_button = tk.Button(frame, text ="Рассчитать", font=helv10, width=25, bg=calc_button_color_1,
-        fg='white', height=2, activebackground=calc_button_color_2, command=lambda:win.capture_image_wrapper(height_from_plant))
-        self.capture_button.grid(row=10, column=5, columnspan=2, sticky="EWNS")
+        self.capture_button = ttk.Button(frame, text ="Рассчитать", width=25,
+        command=lambda:win.capture_image_wrapper(height_from_plant), cursor="hand2")
+        self.capture_button.grid(row=10, column=5, columnspan=2)
 
-        self.label_picture = tk.Label(frame, text="Путь к фотоке:",width=20, borderwidth=2, relief="groove")
-        self.label_picture.grid(row=9, column=5, sticky="EWNS")
+        self.label_picture = ttk.Label(frame, text="Путь к фотоке:",width=20, anchor=CENTER)
+        self.label_picture.grid(row=9, column=5)
 
-        self.picture_path = tk.Entry(frame, font=30)
-        # self.picture_path.grid(row=2,column=6)
+        self.picture_path = ttk.Entry(frame)
         self.picture_path.place(x=2000,y=2000)
 
 
-        self.select_button_pic = tk.Button(frame,text="Выбрать",font=40, command=self.choose_picture).grid(row=9, column=6, sticky="EWNS")
+        self.select_button_pic = ttk.Button(frame,text="Выбрать", command=self.choose_picture, cursor="hand2").grid(row=9, column=6)
 
 
     def set_caps(self, mode, width, height):
@@ -92,8 +93,8 @@ class MainWindow():
 
     def update_image(self):
 
-        self.image_org = cv2.cvtColor(self.cap.read()[1], cv2.COLOR_BGR2RGB) # to RGB
-        self.image_hsv = cv2.cvtColor(self.image_org, cv2.COLOR_RGB2HSV) # to RGB
+        self.image_org = cv2.cvtColor(self.cap.read()[1], cv2.COLOR_BGR2RGB)
+        self.image_hsv = cv2.cvtColor(self.image_org, cv2.COLOR_RGB2HSV)
 
 
         h_min = self.hue_min.get()
@@ -131,10 +132,9 @@ class MainWindow():
 
         def capture_image():
 
-            # progress_pivot = (1000,570)
             progress_bar = Progressbar(frame, orient=HORIZONTAL, mode='indeterminate')
             progress_bar.grid(row=11, column=5, columnspan=2, sticky="NWSE")
-            progress_bar_label = tk.Label(frame, text="Обработка данных...", font=helv10, bg=entry_color, fg=text_color, borderwidth=2, relief="groove")
+            progress_bar_label = ttk.Label(frame, text="Обработка данных...", borderwidth=2, relief="groove", anchor=CENTER)
             progress_bar_label.grid(row=10, column=5, columnspan=2)
 
             self.capture_button["state"] = "disabled"
@@ -210,12 +210,12 @@ class MainWindow():
 
         self.canvas.delete("all")
         filename = filedialog.askopenfilename(filetypes=[("Pictures", ".jpeg .png  .jpg"), ("ALL","*.*")])
-        self.picture_path.insert(END, filename) # add this
+        self.picture_path.insert(END, filename)
         picture = Path(self.picture_path.get())
 
         self.image_org = cv2.imread(str(picture))
         self.image_org = cv2.resize(self.image_org, (800, 600), interpolation = cv2.INTER_AREA)
-
+        root.geometry("%dx%d+0+0" % (800+390, 620))
         self.cap = Cheating(self.image_org)
         self.set_caps("Only Images", 801, 601)
 
@@ -227,17 +227,17 @@ class MainWindow():
 
 if __name__ == "__main__":
 
-    root = tk.Tk()
-    frame = tk.Frame(root)
-    frame = Frame(root)
+    theme = 'ubuntu'
+    root = ThemedTk(theme=theme)
+
+    frame = ttk.Frame(root)
     frame.rowconfigure(list(range(0,12)), weight=2)
     frame.columnconfigure(list(range(0,3)), weight=2)
     frame.rowconfigure(0, weight=1)
 
 
     width, height = root.winfo_screenwidth(), root.winfo_screenheight()
-    root.geometry("1000x500")
-    frame.configure(bg=window_color)
+    root.geometry("1000x500+0+0")
     helv21 = tkFont.Font(family="Georgia",size=21,weight="bold")
     helv10 = tkFont.Font(family="Georgia",size=10,weight="bold")
     helv11 = tkFont.Font(family="Georgia",size=11,weight="bold")
@@ -253,17 +253,26 @@ if __name__ == "__main__":
     height_from_plant = tk.StringVar()
 
 
-    plant_height_label = tk.Label(frame, text="Расчет площади растения", font=helv21, bg=s_entry_color, fg=s_text_color, borderwidth=2, relief="groove")
+    ttk.Style().configure("Heading.TLabel", relief="groove",
+        background="#fff", font=('Georgia', 15, 'bold'))
+
+    ttk.Style().configure("TLabel", font=('Georgia', 11))
+    ttk.Style().configure("Horizontal.TScale", troughcolor="black")
+    ttk.Style().configure("TRadiobutton", font=('Georgia', 11))
+    ttk.Style().configure("TButton", font=('Georgia', 11))
+
+
+    plant_height_label = ttk.Label(frame, text="Расчет площади растения", borderwidth=2, relief="groove", anchor=CENTER, style="Heading.TLabel")
     plant_height_label.grid(row=0, column=5, columnspan=2, sticky="EWNS")
 
 
     hsv_pivot = (1100, 130)
     for i, widget in enumerate(list_hsv_minmax, start=2):
         if widget.startswith("hue"):
-            exec("widget = tk.Scale(frame, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
+            exec("widget = ttk.Scale(frame, from_=0, to=179, variable=" + widget + ", length=180, orient=tk.HORIZONTAL)")
         else:
-            exec("widget = tk.Scale(frame, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL, bg=s_entry_color, fg=s_text_color, troughcolor=troughcolor)")
-        widget.grid(row=i, column=6, sticky="EWNS")
+            exec("widget = ttk.Scale(frame, from_=0, to=255, variable=" + widget + ", length=180, orient=tk.HORIZONTAL)")
+        widget.grid(row=i, column=6)
 
 
     hue_min.set(0); hue_max.set(179);
@@ -277,7 +286,7 @@ if __name__ == "__main__":
 
     list_hsv_minmax_label = [hsv + " " + mm for mm in ["мин", "макс"] for hsv in ["Тон", "Насыщенность", "Яркость"]]
     for i, label in enumerate(list_hsv_minmax_label, start=2):
-        tk.Label(frame, text=label, font=helv11, bg=entry_color, fg=text_color, borderwidth=2, relief="groove").grid(row=i, column=5, sticky="EWNS")
+        ttk.Label(frame, text=label, borderwidth=2, relief="groove", anchor=CENTER).grid(row=i, column=5, sticky="EWNS")
 
 
     webcam_broken= None
@@ -319,13 +328,10 @@ if __name__ == "__main__":
 
     rad_button_pivot = (30, 10)
 
-    # tk.Label(frame, text="Выбор камеры:", font=helv12, bg=entry_color, fg=text_color).grid(row=, column=)
-    # tk.Label(frame, text="Основная веб-камера", font=helv12, bg=entry_color, fg=text_color).grid(row=1, column=5)
-    # tk.Label(frame, text="Подключенная камера", font=helv12, bg=entry_color, fg=text_color).grid(row=1, column=6)
-    rad_but_1 = tk.Radiobutton(frame, text="Основная камера", padx = 5, font=helv11, variable=cam_type,
-        value=0, command=lambda:win.change_camera(0), bg=entry_color, fg="#000000")
-    rad_but_2 = tk.Radiobutton(frame, text="Подключенная камера", padx = 5, font=helv11, variable=cam_type,
-        value=1, command=lambda:win.change_camera(1), bg=entry_color, fg="#000000")
+    rad_but_1 = ttk.Radiobutton(frame, text="Основная камера", variable=cam_type,
+        value=0, command=lambda:win.change_camera(0), cursor="hand2")
+    rad_but_2 = ttk.Radiobutton(frame, text="Подключенная камера", variable=cam_type,
+        value=1, command=lambda:win.change_camera(1), cursor="hand2")
     rad_but_1.grid(row=1, column=5, sticky="EWNS")
     rad_but_2.grid(row=1, column=6, sticky="EWNS")
 
@@ -337,14 +343,13 @@ if __name__ == "__main__":
 
     pattern = re.compile(r'^([\.\d]*)$')
     vcmd = (frame.register(validate_numbers), "%i", "%P")
-    plant_height_label = tk.Label(frame, text="Высота до растения в (см)", font=helv11, bg=entry_color, fg=text_color, borderwidth=2, relief="groove")
+    plant_height_label = ttk.Label(frame, text="Высота до растения в (см)", borderwidth=2, relief="groove", anchor=CENTER)
     plant_height_label.grid(row=8, column=5, sticky="EWNS")
 
-    plant_height_entry = tk.Entry(frame, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd, bg=e_entry_color)
+    plant_height_entry = ttk.Entry(frame, textvariable=height_from_plant, width=29, validate="key", validatecommand=vcmd)
     plant_height_entry.grid(row=8, column=6, sticky="EWNS")
 
     frame.pack(side=RIGHT, fill=BOTH, expand=True)
     frame.mainloop()
-    # frame.mainloop()
 
     os.system("taskkill /F /IM python3.8.exe /T")
